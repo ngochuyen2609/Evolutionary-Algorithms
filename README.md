@@ -1,0 +1,6 @@
+- Cài đặt GA với mã hóa hoán vị giải bài TSP 
+    - toán tử lai phép (OX, PMX), 
+    - phép toán đột biến (Swap, Inversion), 
+    - phép lựa chọn (Tournament, Roulette Wheel)
+- Cài đặt GA với mã hóa số thực giải bài toán TSP 
+    - cài đặt các toán tử làm việc với số thực (lai ghép: SBX; đột biến: Polynomial Mutation, Gaussian Mutation)
