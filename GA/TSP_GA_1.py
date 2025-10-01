@@ -19,7 +19,7 @@ def init_population(pop_size, num_genes):
 # ========================
 # B2: Chọn cha mẹ
 # ========================
-def selection_parent_Tournament(population, matrix, k=3):
+def selection_parent_Tournament(population, matrix, k=5):
     """Tournament: chọn random k cá thể -> lấy cá thể tốt nhất"""
     selected = random.sample(population, k)
     selected.sort(key=lambda ind: fitness(ind, matrix), reverse=True)
