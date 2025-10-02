@@ -213,7 +213,7 @@ if __name__ == "__main__":
     plt.plot(history)
     plt.xlabel("Generation")
     plt.ylabel("Cost")
-    plt.title("GA - Lịch sử Cost")
+    plt.title("Roulette + PMX Crossover + Inversion Mutation - Lịch sử Cost")
     plt.show()
 
     coords = [problem.node_coords[i] for i in nodes]
@@ -237,7 +237,7 @@ if __name__ == "__main__":
     plt.plot(history)
     plt.xlabel("Generation")
     plt.ylabel("Cost")
-    plt.title("GA - Lịch sử Cost")
+    plt.title("Tournament + OX Crossover + Swap Mutation - Lịch sử Cost")
     plt.show()
 
     coords = [problem.node_coords[i] for i in nodes]
