@@ -1,10 +1,8 @@
 import random
-import time
+from matplotlib import pyplot as plt
 import tsplib95
 
-# ========================
-# B1: Khởi tạo quần thể (mỗi cá thể là một hoán vị)
-# ========================
+# ---------- B1: Khởi tạo quần thể (mỗi cá thể là một hoán vị) ----------
 def init_population(pop_size, num_genes):
     """Khởi tạo quần thể (mỗi cá thể là một hoán vị)"""
     population = []
@@ -14,11 +12,8 @@ def init_population(pop_size, num_genes):
         population.append(individual)
     return population
 
-# def init_population_by_greedy(pop_size):
-    
-# ========================
-# B2: Chọn cha mẹ
-# ========================
+
+# ---------- B2: Chọn cha mẹ ----------
 def selection_parent_Tournament(population, matrix, k=5):
     """Tournament: chọn random k cá thể -> lấy cá thể tốt nhất"""
     selected = random.sample(population, k)
@@ -28,9 +23,9 @@ def selection_parent_Tournament(population, matrix, k=5):
 def selection_parent_Roulette(population, matrix):
     """
     Roulette Wheel Selection
-    Tính fitness cho tất cả cá thể. (Nếu có giá trị âm/0) dịch và chuẩn hóa để tổng > 0.
-    Tính tổng F = ∑ fi và xác suất tích lũy.
-    Rút số ngẫu nhiên  r∈[0,1); tìm cá thể có tích lũy ≥ r
+    - Tính fitness cho tất cả cá thể.
+    - Tính tổng F = ∑ fi và xác suất tích lũy.
+    - Rút số ngẫu nhiên r ∈ [0, F), chọn cá thể có tích lũy ≥ r.
     """
     fitnesses = [fitness(ind, matrix) for ind in population]
     total_fit = sum(fitnesses)
@@ -42,20 +37,18 @@ def selection_parent_Roulette(population, matrix):
             return ind
     return population[-1]
 
-# ========================
-# B3: Lai ghép
-# ========================
+
+# ---------- B3: Lai ghép ----------
 def crossover_OX(parent1, parent2):
     """
-    Order Crossover (OX)
-    Chọn hai điểm cắt a, b.
-    Copy đoạn [a:b] từ cha 1 sang con.
-    Trong đoạn [a:b], tạo bản đồ ánh xạ giữa gene cha 1 và cha 2.
-    Duyệt cha 2, điền gene còn lại vào con theo ánh xạ (tránh trùng lặp).
+    Order Crossover (OX) — trả về 1 con:
+    B1: Chọn hai điểm cắt a < b
+    B2: Copy đoạn parent1[a:b] sang child[a:b]
+    B3: Duyệt parent2 theo thứ tự; nếu gene chưa có trong child thì chèn vào vị trí trống (theo vòng)
     """
     size = len(parent1)
     a, b = sorted(random.sample(range(size), 2))
-    child = [None]*size
+    child = [None] * size
     child[a:b] = parent1[a:b]
     pos = b
     for x in parent2:
@@ -68,64 +61,55 @@ def crossover_OX(parent1, parent2):
 
 def crossover_PMX(parent1, parent2):
     """
-    Partially Mapped Crossover (PMX)
-    Chọn ngẫu nhiên hai điểm cắt a, b trên chuỗi.
-    Copy đoạn [a:b] từ cha 1 sang con.
-    Duyệt qua cha 2, lấy các gene chưa có trong con, chèn lần lượt vào các ô còn trống (theo thứ tự).   
+    Partially Mapped Crossover (PMX) — trả về 1 con:
+    B1: Chọn hai điểm cắt a < b
+    B2: Copy đoạn parent1[a:b] -> child[a:b]
+    B3: Tạo mapping giữa parent1 và parent2 trong đoạn [a:b]
+    B4: Với vị trí ngoài đoạn [a:b], fill bằng parent2[i], nhưng nếu trùng với vùng copy thì dịch theo mapping cho tới khi hợp lệ
     """
     size = len(parent1)
     a, b = sorted(random.sample(range(size), 2))
 
     child = [None] * size
-    # copy đoạn từ parent1
     child[a:b] = parent1[a:b]
 
-    # tạo ánh xạ giữa cha1 và cha2 trong đoạn [a:b]
     mapping = {parent2[i]: parent1[i] for i in range(a, b)}
     mapping.update({parent1[i]: parent2[i] for i in range(a, b)})
 
-    # điền phần còn lại từ parent2
     for i in range(size):
-        if i >= a and i < b:
+        if a <= i < b:
             continue
         candidate = parent2[i]
-        # nếu candidate đã có trong đoạn copy thì thay theo ánh xạ cho đến khi hợp lệ
         while candidate in child[a:b]:
             candidate = mapping[candidate]
         child[i] = candidate
-
     return child
 
 
-# ========================
-# B3: Đột biến
-# ========================
+# ---------- B4: Đột biến ----------
 def mutation_Inversion(individual):
     """Đột biến Inversion: đảo ngược một đoạn gen"""
     a, b = sorted(random.sample(range(len(individual)), 2))
     individual[a:b] = reversed(individual[a:b])
     return individual
 
-def mutation_swap(individual):
+def mutation_Swap(individual):
     """Đột biến Swap: hoán đổi 2 gene"""
     a, b = random.sample(range(len(individual)), 2)
     individual[a], individual[b] = individual[b], individual[a]
     return individual
 
-# ========================
-# Fitness
-# ========================
+
+# ---------- Fitness ----------
 def fitness(individual, matrix):
-    """Tính độ thích nghi: nghịch đảo tổng chi phí tour"""
     cost = 0
     for i in range(len(individual) - 1):
         cost += matrix[individual[i]][individual[i+1]]
-    cost += matrix[individual[-1]][individual[0]]  # quay về điểm đầu
+    cost += matrix[individual[-1]][individual[0]]
     return 1 / (cost + 1e-9)
 
-# ========================
-# GA chính
-# ========================
+
+# ---------- GA chính ----------
 def GA(
     matrix,
     selection_parent: str,
@@ -134,115 +118,131 @@ def GA(
     pop_size=50,
     crossover_rate=0.9,
     mutation_rate=0.1,
-    time_limit_sec=250,
+    patience=100
 ):
     """
     - B1: Khởi tạo quần thể
-    - B2: Chọn cha mẹ (Tournament / Roulette / Random)
-    - B3: Lai ghép (OX / PMX / Random) + Đột biến (Swap / Inversion / Random)
+    - B2: Chọn cha mẹ (Tournament / Roulette)
+    - B3: Lai ghép (OX / PMX) + Đột biến (Swap / Inversion)
     - B4: Elitism: gộp cha+con, giữ top pop_size
-    - B5: Dừng theo time_limit_sec
+    - B5: Dừng khi không cải thiện sau `patience` thế hệ
     """
     n = len(matrix)
     population = init_population(pop_size, n)
     best = max(population, key=lambda ind: fitness(ind, matrix))
+    best_cost = 1 / fitness(best, matrix)
 
-    # Chuẩn hóa tham số lựa chọn
-    selection_parent = selection_parent.strip().lower()
-    crossover = crossover.strip().lower()
-    mutation = mutation.strip().lower()
+    history = [best_cost]
+    no_improve = 0
+    g = 0
 
-    t0 = time.time()
-    while time.time() - t0 < time_limit_sec:
+    while no_improve < patience:
+        g += 1
         new_pop = []
+
         for _ in range(pop_size):
-            # --------- B2: chọn cha mẹ ----------
+            # chọn cha mẹ
             if selection_parent == "tournament":
                 p1 = selection_parent_Tournament(population, matrix)
                 p2 = selection_parent_Tournament(population, matrix)
             elif selection_parent == "roulette":
                 p1 = selection_parent_Roulette(population, matrix)
                 p2 = selection_parent_Roulette(population, matrix)
-            else:  # "random"
-                if random.random() < 0.5:
-                    p1 = selection_parent_Tournament(population, matrix)
-                else:
-                    p1 = selection_parent_Roulette(population, matrix)
-                if random.random() < 0.5:
-                    p2 = selection_parent_Tournament(population, matrix)
-                else:
-                    p2 = selection_parent_Roulette(population, matrix)
 
-            # --------- B3: lai ghép ----------
+            # lai ghép
             if random.random() < crossover_rate:
                 if crossover == "ox":
                     child = crossover_OX(p1, p2)
                 elif crossover == "pmx":
                     child = crossover_PMX(p1, p2)
-                else:  # "random"
-                    child = crossover_OX(p1, p2) if random.random() < 0.5 else crossover_PMX(p1, p2)
             else:
                 child = p1[:]
 
-            # --------- B3: đột biến ----------
+            # đột biến
             if random.random() < mutation_rate:
                 if mutation == "swap":
-                    child = mutation_swap(child)
+                    child = mutation_Swap(child)
                 elif mutation == "inversion":
                     child = mutation_Inversion(child)
-                else:  # "random"
-                    child = mutation_swap(child) if random.random() < 0.5 else mutation_Inversion(child)
 
             new_pop.append(child)
 
-        # --------- B4: elitism ----------
+        # elitism
         population = population + new_pop
         population.sort(key=lambda ind: fitness(ind, matrix), reverse=True)
         population = population[:pop_size]
 
-        if fitness(population[0], matrix) > fitness(best, matrix):
-            best = population[0]
+        # cập nhật best
+        current_best = population[0]
+        current_cost = 1 / fitness(current_best, matrix)
+        history.append(current_cost)
 
-    return best, 1/fitness(best,matrix)
+        if current_cost < best_cost:
+            best = current_best
+            best_cost = current_cost
+            no_improve = 0
+        else:
+            no_improve += 1
 
-# ========================
-# Chạy thử
-# ========================
+        if g % 20 == 0:
+            print(f"Gen {g}: cost = {best_cost}")
+
+    return best, best_cost, history
+
+
+# ---------- Test ----------
 if __name__ == "__main__":
     problem = tsplib95.load("data/eil51.tsp")
     print("Số thành phố:", problem.dimension)
 
-    # Tạo ma trận khoảng cách theo thứ tự node 1..n -> index 0..n-1
-    nodes = list(problem.get_nodes())              # [1..51]
+    nodes = list(problem.get_nodes())
     n = len(nodes)
     matrix = [[problem.get_weight(i, j) for j in nodes] for i in nodes]
 
-    # Thử cấu hình 1
-    best_path, best_cost = GA(
+    best_path, best_cost, history = GA(
         matrix,
-        selection_parent="Tournament",
-        crossover="OX",
-        mutation="Swap",
+        selection_parent="tournament",
+        crossover="ox",
+        mutation="swap",
         pop_size=50,
         crossover_rate=0.9,
         mutation_rate=0.1,
+        patience=200
     )
-    print("selection_parent: Tournament, crossover: OX, mutation: Swap")
-    print("Best path (index 0-based):", best_path)
-    print("Best path (city IDs 1-based):", [x+1 for x in best_path])
-    print("Best cost:", best_cost)
 
-    # Thử cấu hình 2
-    best_path, best_cost = GA(
+    plt.plot(history)
+    plt.xlabel("Generation")
+    plt.ylabel("Cost")
+    plt.title("GA - Lịch sử Cost")
+    plt.show()
+
+    coords = [problem.node_coords[i] for i in nodes]
+    x = [coords[i][0] for i in best_path] + [coords[best_path[0]][0]]
+    y = [coords[i][1] for i in best_path] + [coords[best_path[0]][1]]
+    plt.plot(x, y, 'o-r')
+    plt.title(f"TSP Best Tour (Cost={best_cost})")
+    plt.show()
+
+    best_path, best_cost, history = GA(
         matrix,
-        selection_parent="Roulette",
-        crossover="PMX",
-        mutation="Inversion",
+        selection_parent="roulette",
+        crossover="pmx",
+        mutation="inversion",
         pop_size=50,
         crossover_rate=0.9,
         mutation_rate=0.1,
+        patience=200
     )
-    print("\nselection_parent: Roulette, crossover: PMX, mutation: Inversion")
-    print("Best path (index 0-based):", best_path)
-    print("Best path (city IDs 1-based):", [x+1 for x in best_path])
-    print("Best cost:", best_cost)
+
+    plt.plot(history)
+    plt.xlabel("Generation")
+    plt.ylabel("Cost")
+    plt.title("GA - Lịch sử Cost")
+    plt.show()
+
+    coords = [problem.node_coords[i] for i in nodes]
+    x = [coords[i][0] for i in best_path] + [coords[best_path[0]][0]]
+    y = [coords[i][1] for i in best_path] + [coords[best_path[0]][1]]
+    plt.plot(x, y, 'o-r')
+    plt.title(f"TSP Best Tour (Cost={best_cost})")
+    plt.show()
