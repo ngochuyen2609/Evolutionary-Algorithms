@@ -159,6 +159,6 @@ def mfea_tsp_knapsack(dist_matrix, values, weights, capacity,
 
     print(f"\n Dừng sau {gen} thế hệ (no_improve={no_improve})")
     print(f"   Best TSP: {1/best_tsp_fit:.6f}")
-    print(f"   Best Knapsack : {1/best_knap_fit:.6f}")
+    print(f"   Best Knapsack : {best_knap_fit:.6f}")
 
     return best_tsp_ind, best_knap_ind
