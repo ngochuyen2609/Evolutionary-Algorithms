@@ -167,3 +167,7 @@ Next Generation
 | fitness_tsp, fitness_knapsack | Hàm đánh giá từng task |
 | elitism | Giữ lại cá thể tốt nhất của mỗi task |
 
+
+## Dừng sau 567 thế hệ (no_improve=100)
+   Best TSP fitness: 0.000756
+   Best Knapsack fitness: 16704.000000

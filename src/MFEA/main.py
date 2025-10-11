@@ -3,7 +3,7 @@ import numpy as np
 import tsplib95
 import os
 
-def tsp_data(path="data/TSP/eil51.tsp"):
+def tsp_data(path):
     problem = tsplib95.load(path)
     print("Số thành phố:", problem.dimension)
 
@@ -11,7 +11,7 @@ def tsp_data(path="data/TSP/eil51.tsp"):
     matrix = [[problem.get_weight(i, j) for j in nodes] for i in nodes]
     return np.array(matrix)
 
-def knapsack_data(path="data/Knapsack/kp.kp"):
+def knapsack_data(path):
     values, weights = [], []
     with open(path, "r") as f:
         lines = [line.strip() for line in f if line.strip()]
@@ -36,8 +36,9 @@ if __name__ == "__main__":
 
     # ---- Chạy MFEA ----
     best_tsp, best_knap = mfea_tsp_knapsack(
-        dist_matrix, values, weights, capacity,
-        pop_size=60, gens=200, rmp=0.3
+        dist_matrix, 
+        values, weights, capacity,
+        pop_size=60, rmp=0.3
     )
 
     print("\n Best TSP Path:", np.argsort(best_tsp))
