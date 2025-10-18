@@ -26,36 +26,52 @@ def tsp_distance(path, dist_matrix):
         total += dist_matrix[path[i]][path[(i + 1) % len(path)]]
     return total
 
-def decode_tsp(gen):
+def decode_tsp(gen, dist_matrix):
+    """
+    Chỉ sử dụng phần gen đầu tiên ứng với số thành phố.
+    → Loại bỏ các phần padding nếu D > n_tsp.
+    """
+    n_tsp = dist_matrix.shape[0]
+    gen = gen[:n_tsp]  
     return np.argsort(gen)
 
 def fitness_tsp(gen, dist_matrix):
-    path = decode_tsp(gen)
+    path = decode_tsp(gen,dist_matrix)
     return 1.0 / (tsp_distance(path, dist_matrix) + 1e-9)
 
 
 # TASK 2: 0/1 Knapsack Problem
-def decode_knapsack_ranked(gen, values, weights, capacity):
+import numpy as np
+
+def decode_knapsack_fill(gen, values, weights, capacity):
     """
-    Sắp xếp item theo gen giảm dần.
-    Duyệt theo thứ tự này, nhét item nếu còn sức chứa.
-    Trả về vector bits (0/1).
+    Giải mã vector thực [0,1]^n thành nghiệm 0/1:
+    - Sắp gen giảm dần
+    - Duyệt theo thứ tự đó và nhét item nếu còn sức chứa
+    - Dừng khi hết chỗ
     """
-    n = len(gen)
-    order = np.argsort(-gen)  # giảm dần
+    values  = np.asarray(values, dtype=float)
+    weights = np.asarray(weights, dtype=float)
+    n = len(values)
+    g = np.asarray(gen, dtype=float)[:n]
+
+    # Thứ tự ưu tiên: gen cao trước
+    order = np.argsort(-g)   # giảm dần
+
     bits = np.zeros(n, dtype=int)
-    rem = capacity
+    rem = float(capacity)
 
     for idx in order:
         w = weights[idx]
         if w <= rem:
             bits[idx] = 1
             rem -= w
-        # dừng sớm nếu không còn item nào có thể nhét được
+        if rem <= 0:
+            break
     return bits
 
 def knapsack_cost(gen, values, weights, capacity):
-    bits = decode_knapsack_ranked(gen, values, weights, capacity)
+    bits = decode_knapsack_fill(gen, values, weights, capacity)
     total_w = np.sum(weights * bits)
     total_v = np.sum(values * bits)
     
@@ -65,3 +81,14 @@ def knapsack_cost(gen, values, weights, capacity):
 
 def fitness_knapsack(gen, values, weights, capacity):
     return knapsack_cost(gen, values, weights, capacity)
+
+def fitness(
+    gen, sf,
+    dist_matrix,
+    values, weights, capacity):
+    if sf == 0:
+        return fitness_tsp(gen, dist_matrix)
+    else:
+        return fitness_knapsack(gen, values, weights, capacity)
+    
+    

@@ -2,6 +2,7 @@ from mfea.mfea_core import mfea_tsp_knapsack
 import numpy as np
 import tsplib95
 import os
+from mfea.tasks import decode_knapsack_fill, decode_tsp
 
 def tsp_data(path):
     problem = tsplib95.load(path)
@@ -22,7 +23,7 @@ def knapsack_data(path):
             v, w = map(float, line.split())
             values.append(v)
             weights.append(w)
-
+    print(len(values))
         
     return np.array(values), np.array(weights), capacity
 
@@ -38,8 +39,8 @@ if __name__ == "__main__":
     best_tsp, best_knap = mfea_tsp_knapsack(
         dist_matrix, 
         values, weights, capacity,
-        pop_size=60, rmp=0.3
+        pop_size=50, rmp=0.3
     )
 
-    print("\n Best TSP Path:", np.argsort(best_tsp))
-    print(" Best Knapsack:", (best_knap > 0.5).astype(int))
+    print("\n Best TSP Path:", decode_tsp(best_tsp, dist_matrix))
+    print(" Best Knapsack:", decode_knapsack_fill(best_knap, values, weights, capacity) )

@@ -1,12 +1,12 @@
 import numpy as np
 import random
-from .operators import sbx_crossover, gaussian_mutation, tournament_selection_mfea
-from .tasks import fitness_tsp, fitness_knapsack
+from .operators import sbx_crossover, gaussian_mutation, random_parents_mfea, polynomial_mutation
+from .tasks import fitness_tsp, fitness_knapsack, fitness
 
 
 def mfea_tsp_knapsack(dist_matrix, values, weights, capacity,
-                      pop_size=50, rmp=0.3, 
-                      patience=100, max_gens=10000):
+                      pop_size=50, rmp=0.2, 
+                      patience=200, max_gens=10000):
     """
     Multifactorial Evolutionary Algorithm
     - Một quần thể duy nhất giải đồng thời TSP và Knapsack
@@ -57,16 +57,12 @@ def mfea_tsp_knapsack(dist_matrix, values, weights, capacity,
     while no_improve < patience and gen < max_gens:
         gen += 1
         offspring, offspring_skill = [], []
-
-        for _ in range(pop_size // 2):
+        
+        for _ in range(50):
             k = 5
             # chọn cha mẹ qua tournament
-            p1, sf1 = tournament_selection_mfea(population, skill_factor, k,
-                                                dist_matrix, values, weights, capacity,
-                                                n_tsp, n_knap)
-            p2, sf2 = tournament_selection_mfea(population, skill_factor, k,
-                                                dist_matrix, values, weights, capacity,
-                                                n_tsp, n_knap)
+            (p1, sf1), (p2, sf2) = random_parents_mfea(population, skill_factor)
+            # print(f"parent1:{fitness(p1,sf1,dist_matrix,values, weights, capacity)},{sf1}   parent2:{fitness(p2,sf2,dist_matrix,values, weights, capacity)},{sf2}")
 
             # lai ghép (cross-task nếu random < rmp)
             if sf1 != sf2 and random.random() > rmp:
@@ -74,7 +70,7 @@ def mfea_tsp_knapsack(dist_matrix, values, weights, capacity,
             c1, c2 = sbx_crossover(p1, p2)
 
             # đột biến
-            c1, c2 = gaussian_mutation(c1), gaussian_mutation(c2)
+            c1, c2 = polynomial_mutation(c1), polynomial_mutation(c2)
 
             offspring.append(c1)
             offspring.append(c2)
@@ -82,6 +78,7 @@ def mfea_tsp_knapsack(dist_matrix, values, weights, capacity,
                 random.choice([sf1, sf2]),
                 random.choice([sf1, sf2])
             ])
+            
 
         if len(offspring) == 0:
             # không sinh được con (rmp quá nhỏ) → bỏ qua thế hệ
@@ -145,6 +142,7 @@ def mfea_tsp_knapsack(dist_matrix, values, weights, capacity,
 
         if gen % 10 == 0:
             print(f"[Gen {gen:04d}]  TSP={best_tsp_fit:.6f}  |  Knapsack={best_knap_fit:.6f}  |  no_improve={no_improve}")
+            print(len(population))
 
     # Extract best individuals
     best_tsp_ind = population[np.argmax([
