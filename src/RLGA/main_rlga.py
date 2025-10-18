@@ -44,8 +44,8 @@ def main():
     print("Best tour (1-based):", [x+1 for x in best] + [best[0]+1])
 
     # 5) Vẽ lịch sử & tour
-    plot_scores(history, title="RL+GA TSP — Best tour length per generation", filename="images/history.png")
-    plot_tour(coords, best, best_cost, title="RL+GA — Best TSP tour", filename="images/best_tour.png")
+    plot_scores(history, title="RL+GA TSP — Best tour length per generation", filename="images/RLGA.png")
+    plot_tour(coords, best, best_cost, title="RL+GA — Best TSP tour", filename="images/best_tour_RLGA.png")
 
 if __name__ == "__main__":
     main()
