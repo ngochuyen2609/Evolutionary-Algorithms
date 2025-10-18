@@ -12,7 +12,7 @@ if PROJECT_ROOT_STR not in sys.path:
     sys.path.insert(0, PROJECT_ROOT_STR)
     
 from utils.plot import plot_scores, plot_tour
-
+from src.GA.initPopulation import init_population_greedy
 
 # ---------- B1: Khởi tạo quần thể (mỗi cá thể là một hoán vị) ----------
 def init_population(pop_size, num_genes):
@@ -140,7 +140,13 @@ def GA(
     - B5: Dừng khi không cải thiện sau `patience` thế hệ
     """
     n = len(matrix)
-    population = init_population(pop_size, n)
+    population = init_population_greedy(
+        pop_size,
+        num_genes=len(matrix),
+        distance_matrix=matrix,
+        alpha=0.5,       
+        use_2opt=True      
+    )
     best = max(population, key=lambda ind: fitness(ind, matrix))
     best_cost = 1 / fitness(best, matrix)
 
