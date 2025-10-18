@@ -127,8 +127,8 @@ def mfea_tsp_knapsack(dist_matrix, values, weights, capacity,
         # Kiểm tra cải thiện
         cur_best_tsp = np.max(fitnesses[skill_factor == 0]) if np.any(skill_factor == 0) else -np.inf
         cur_best_knap = np.max(fitnesses[skill_factor == 1]) if np.any(skill_factor == 1) else -np.inf
-        hist_tsp.append(cur_best_tsp if cur_best_tsp != -np.inf else 0.0)
-        hist_knap.append(cur_best_knap if cur_best_knap != -np.inf else 0.0)
+        hist_tsp.append(1/cur_best_tsp if cur_best_tsp != -np.inf else 0.0)
+        hist_knap.append(-cur_best_knap if cur_best_knap != -np.inf else 0.0)
 
         improved = False
         if cur_best_tsp > best_tsp_fit:
@@ -139,10 +139,9 @@ def mfea_tsp_knapsack(dist_matrix, values, weights, capacity,
             improved = True
 
         no_improve = 0 if improved else no_improve + 1
-
+        
         if gen % 10 == 0:
             print(f"[Gen {gen:04d}]  TSP={best_tsp_fit:.6f}  |  Knapsack={best_knap_fit:.6f}  |  no_improve={no_improve}")
-            print(len(population))
 
     # Extract best individuals
     best_tsp_ind = population[np.argmax([
@@ -159,4 +158,4 @@ def mfea_tsp_knapsack(dist_matrix, values, weights, capacity,
     print(f"   Best TSP: {1/best_tsp_fit:.6f}")
     print(f"   Best Knapsack : {best_knap_fit:.6f}")
 
-    return best_tsp_ind, best_knap_ind
+    return best_tsp_ind, best_knap_ind, hist_tsp, hist_knap

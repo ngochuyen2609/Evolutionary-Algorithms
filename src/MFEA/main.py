@@ -1,8 +1,19 @@
+from pathlib import Path
+import sys
 from mfea.mfea_core import mfea_tsp_knapsack
 import numpy as np
 import tsplib95
 import os
+
 from mfea.tasks import decode_knapsack_fill, decode_tsp
+
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+PROJECT_ROOT_STR = str(PROJECT_ROOT)
+
+if PROJECT_ROOT_STR not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT_STR)
+    
+from utils.plot import plot_scores
 
 def tsp_data(path):
     problem = tsplib95.load(path)
@@ -36,7 +47,7 @@ if __name__ == "__main__":
     values, weights, capacity = knapsack_data("data/Knapsack/kp.kp")
 
     # ---- Chạy MFEA ----
-    best_tsp, best_knap = mfea_tsp_knapsack(
+    best_tsp, best_knap, hist_tsp, hist_knap = mfea_tsp_knapsack(
         dist_matrix, 
         values, weights, capacity,
         pop_size=50, rmp=0.3
@@ -44,3 +55,6 @@ if __name__ == "__main__":
 
     print("\n Best TSP Path:", decode_tsp(best_tsp, dist_matrix))
     print(" Best Knapsack:", decode_knapsack_fill(best_knap, values, weights, capacity) )
+
+    plot_scores(hist_knap, title="Knapsack — value per generation (MFEA)", filename="images/Knapsack_scores.png")
+    plot_scores(hist_tsp, title="TSP — tour length per generation (MFEA)", filename="images/TSP_scores.png")
