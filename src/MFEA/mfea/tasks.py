@@ -44,30 +44,24 @@ def fitness_tsp(gen, dist_matrix):
 import numpy as np
 
 def decode_knapsack_fill(gen, values, weights, capacity):
-    """
-    Giải mã vector thực [0,1]^n thành nghiệm 0/1:
-    - Sắp gen giảm dần
-    - Duyệt theo thứ tự đó và nhét item nếu còn sức chứa
-    - Dừng khi hết chỗ
-    """
-    values  = np.asarray(values, dtype=float)
-    weights = np.asarray(weights, dtype=float)
-    n = len(values)
-    g = np.asarray(gen, dtype=float)[:n]
+    gen     = np.asarray(gen, float)[:len(values)]
+    values  = np.asarray(values, float)
+    weights = np.asarray(weights, float)
 
-    # Thứ tự ưu tiên: gen cao trước
-    order = np.argsort(-g)   # giảm dần
+    ratio = values / np.maximum(weights, 1e-12)
 
-    bits = np.zeros(n, dtype=int)
+    # Sắp theo: gen ↓ (chính), ratio ↓ (tie-break)
+    # np.lexsort: key CUỐI là tiêu chí CHÍNH
+    order = np.lexsort((-ratio, -gen))
+
+    bits = np.zeros(len(values), dtype=int)
     rem = float(capacity)
-
     for idx in order:
         w = weights[idx]
         if w <= rem:
             bits[idx] = 1
             rem -= w
-        if rem <= 0:
-            break
+        if rem <= 0: break
     return bits
 
 def knapsack_cost(gen, values, weights, capacity):
@@ -82,13 +76,8 @@ def knapsack_cost(gen, values, weights, capacity):
 def fitness_knapsack(gen, values, weights, capacity):
     return knapsack_cost(gen, values, weights, capacity)
 
-def fitness(
-    gen, sf,
-    dist_matrix,
-    values, weights, capacity):
+def fitness(gen, sf,dist_matrix,values, weights, capacity):
     if sf == 0:
         return fitness_tsp(gen, dist_matrix)
     else:
         return fitness_knapsack(gen, values, weights, capacity)
-    
-    

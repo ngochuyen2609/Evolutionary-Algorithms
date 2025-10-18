@@ -16,16 +16,16 @@ def knapsack_data(path):
     values, weights = [], []
     with open(path, "r") as f:
         lines = [line.strip() for line in f if line.strip()]
-        capacity = float(lines[1])
 
-        n = int(lines[1])                   
-        for line in lines[2:n+1]:
-            v, w = map(float, line.split())
-            values.append(v)
-            weights.append(w)
-    print(len(values))
-        
-    return np.array(values), np.array(weights), capacity
+    n = int(lines[0])
+    capacity = float(lines[1])
+
+    for i in range(n):
+        v, w = map(float, lines[2 + i].split())
+        weights.append(v)
+        values.append(w)
+
+    return np.array(values, dtype=float), np.array(weights, dtype=float), float(capacity)
 
 # Chạy MFEA
 if __name__ == "__main__":
